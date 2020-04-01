@@ -1,0 +1,58 @@
+/*Algorithm
+  1. get all the pets from the database
+  2. get the name of the pet they want to update. 
+  3. get the name they want to use for the new name
+  3. see if there are any pets with the original name in the database
+  4. if there are not any in the database, tell them so and done
+  5. if there is a pet with the original name in the database, run query (ajax)
+         -if transit works, see if .responseText is 500 - if it is, 
+          Delete worked - tell them so
+         -if .responseText is not 500, tell them delete didn't work
+    > if transit didn't work, tell them transit error
+*/
+
+activityUpdatePets.onshow=function(){
+    // get the data to populate the dropdown with names from database
+    let query = "SELECT petType FROM petInventory" //refer to email
+    req = Ajax("https://ormond.creighton.edu/courses/375/ajax-connection.php", "POST", "host=ormond.creighton.edu&user=ksw80857&pass=" + pw + "&database=ksw80857&query=" + query)
+
+    if (req.status == 200) {
+            allPetTypes = JSON.parse(req.responseText)
+            selToChangeActivity.clear()
+            for (i = 0; i <= allPetTypes.length - 1; i++)
+                selToChange.addItem(allPetTypes[i])
+    } else {
+        NSB.MsgBox(`Error: ${req.status}`);
+    }  
+}
+
+btnSubmit4Activity.onclick=function(){
+   let newType = inptUpdateActivity.value
+   let oldType = selToChangeActivity.value
+    
+    let found = false
+    for (i = 0; i <= allPetTypes.length - 1; i++) {
+        // console.log(`FOUND IS false and name is ${allPetTypes[i]}`)
+        if (oldType == allPetTypes[i]) {
+            found = true
+            break
+        }
+     }   
+    if (found == false) 
+       NSB.MsgBox("That pet type is not in the petInventory database.") //refer to email
+    else if (found == true) {
+        query = "UPDATE petInventory SET petType =" + '"' + newType + '"' + " WHERE petType = " + '"' + oldType + '"' //refer to email
+        //alert(query)
+        req = Ajax("https://ormond.creighton.edu/courses/375/ajax-connection.php", "POST", "host=ormond.creighton.edu&user=ksw80857&pass=" + pw + "&database=ksw80857&query=" + query)
+
+        if (req.status == 200) {
+            if (req.responseText == 500) {
+                NSB.MsgBox(`You have successfully changed the pet type in the petInventory database!`) //refer to email
+                inptUpdateActivity.value = ""
+                selToChangeActivity.value = ""
+            } else
+                NSB.MsgBox(`There was a problem changing the pet type in the petInventory.`) //refer to email
+        } else 
+          NSB.MsgBox("There was an error");
+    }
+}
